@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "whitelist"
+version = "0.1.0"
+description = ""
+authors = ["cyc60 <avsysoev60@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "==3.8"
+fastapi = "==0.75.2"
+uvicorn = "==0.17.6"
+web3 = "==5.29.0"
+python-decouple = "==3.6"
+
+[tool.poetry.dev-dependencies]
+black = "==22.3.0"
+flake8 = "==4.0.1"
+isort = "==5.10.1"
+flake8-black = "==0.3.2"
+flake8-bugbear = "==22.4.25"
+pre-commit = "==2.18.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
