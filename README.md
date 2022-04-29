@@ -1,6 +1,9 @@
-## StakeWise whitelist manager
+## StakeWise Whitelist Manager
+
+This API service is used to make calls to the WhiteList contract to manage accounts.
 
 # Getting Started
+
 ## Setup
 - Setup docker.
 - Create an env file `cp .env.local .env`
