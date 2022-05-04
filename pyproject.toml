@@ -5,7 +5,7 @@ description = ""
 authors = ["cyc60 <avsysoev60@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "==3.8"
+python = "==3.8.12"
 fastapi = "==0.75.2"
 uvicorn = "==0.17.6"
 web3 = "==5.29.0"
