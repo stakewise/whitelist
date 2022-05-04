@@ -19,14 +19,15 @@ class AddressRequest(BaseModel):
 
     @validator("address")
     def address_validation(cls, value):
+        invalid_address = "Invalid ETH Address"
         if len(value) != 42 or not value.startswith("0x"):
-            raise ValueError("Invalid ETH Address")
+            raise HTTPException(status_code=400, detail=invalid_address)
         if not Web3.isChecksumAddress(value):
-            raise ValueError("Invalid ETH Address")
+            raise HTTPException(status_code=400, detail=invalid_address)
         try:
             decode_hex(value)
         except (binascii.Error, TypeError):
-            raise ValueError("Invalid ETH Address")
+            raise HTTPException(status_code=400, detail=invalid_address)
 
 
 class AuthorizerDependency:
@@ -61,8 +62,5 @@ async def whitelist_delete(
 
 @app.get("/service/whitelist", dependencies=[Depends(AuthorizerDependency())])
 async def whitelist_get(address: str):
-    try:
-        AddressRequest.address_validation(address)
-    except ValueError as e:
-        return {"error": str(e)}
+    AddressRequest.address_validation(address)
     return {"result": check_whitelist(address)}
