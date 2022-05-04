@@ -31,3 +31,16 @@ def update_whitelist(address: str, status: bool):
             tx_hash = function_call.transact(tx_params)
             logger.info(f"[{network}] Submitted transaction: {Web3.toHex(tx_hash)}")
             wait_for_transaction(network, web3_client, tx_hash)
+
+
+def check_whitelist(address: str):
+    w3_clients = get_web3_clients()
+    whitelist_contracts = get_contracts(w3_clients)
+    result = {}
+    for network, web3_client in w3_clients.items():
+        whitelist_contract = whitelist_contracts[network]
+        current_status = whitelist_contract.functions.whitelistedAccounts(
+            address
+        ).call()
+        result[network] = current_status
+    return result
