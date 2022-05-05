@@ -8,7 +8,7 @@ from web3 import Web3
 
 from app import config
 
-from .tasks import check_whitelist, update_whitelist
+from .tasks import check_whitelist, update_whitelist, get_status
 
 w3 = Web3()
 app = FastAPI()
@@ -40,6 +40,11 @@ class AuthorizerDependency:
 @app.get("/heathz")
 async def heathz():
     return {}
+
+
+@app.get("/status")
+async def status():
+    return {"status": get_status()}
 
 
 @app.post("/service/whitelist", dependencies=[Depends(AuthorizerDependency())])
