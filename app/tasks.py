@@ -1,21 +1,23 @@
 import logging
+from multiprocessing import Lock
 
 from web3 import Web3
 
 from contract.contract import get_contracts
 
-from .w3 import get_transaction_params, get_web3_clients, wait_for_transaction
+from .db import delete_record, has_record, insert_record
+from .w3 import get_transaction_params, get_web3_clients
 
 logger = logging.getLogger(__name__)
 
-executing_transactions = dict()
+
+lock = Lock()
 
 
 def update_whitelist(address: str, status: bool):
-    global executing_transactions
-    if executing_transactions.get(address):
+    if has_record(address):
         return
-    executing_transactions[address] = True
+    insert_record(address)
     try:
         w3_clients = get_web3_clients()
         whitelist_contracts = get_contracts(w3_clients)
@@ -25,23 +27,28 @@ def update_whitelist(address: str, status: bool):
                 address
             ).call()
             if current_status != status:
-                function_call = whitelist_contract.functions.updateWhiteList(
-                    address, status
-                )
-                tx_params = get_transaction_params(network, web3_client)
-                estimated_gas = function_call.estimateGas(tx_params)
+                try:
+                    lock.acquire()
+                    function_call = whitelist_contract.functions.updateWhiteList(
+                        address, status
+                    )
+                    tx_params = get_transaction_params(network, web3_client)
+                    estimated_gas = function_call.estimateGas(tx_params)
 
-                # add 10% margin to the estimated gas
-                tx_params["gas"] = int(estimated_gas * 0.1) + estimated_gas
+                    # add 10% margin to the estimated gas
+                    tx_params["gas"] = int(estimated_gas * 0.1) + estimated_gas
 
-                # execute transaction
-                tx_hash = function_call.transact(tx_params)
-                logger.info(f"[{network}] Submitted transaction: {Web3.toHex(tx_hash)}")
-                wait_for_transaction(network, web3_client, tx_hash)
+                    # execute transaction
+                    tx_hash = function_call.transact(tx_params)
+                    logger.info(
+                        f"[{network}] Submitted transaction: {Web3.toHex(tx_hash)}"
+                    )
+                finally:
+                    lock.release()
     except Exception as e:
         logger.exception(e)
     finally:
-        del executing_transactions[address]
+        delete_record(address)
 
 
 def check_whitelist(address: str):
@@ -58,4 +65,4 @@ def check_whitelist(address: str):
 
 
 def get_status(address):
-    return "running" if executing_transactions.get(address) else "idle"
+    return "running" if has_record(address) else "idle"

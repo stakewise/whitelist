@@ -8,10 +8,12 @@ from web3 import Web3
 
 from app import config
 
+from .db import setup_db
 from .tasks import check_whitelist, get_status, update_whitelist
 
 w3 = Web3()
 app = FastAPI()
+setup_db()
 
 
 class AddressRequest(BaseModel):
