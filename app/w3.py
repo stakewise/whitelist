@@ -1,19 +1,11 @@
 import logging
-import time
 from typing import Dict
 
-from eth_typing import BlockNumber
-from hexbytes import HexBytes
 from web3 import Web3
 from web3.middleware import construct_sign_and_send_raw_middleware, geth_poa_middleware
 from web3.types import TxParams
 
-from app.config import (
-    CONFIRMATION_BLOCKS,
-    ENABLED_NETWORKS,
-    NETWORKS,
-    TRANSACTION_TIMEOUT,
-)
+from app.config import ENABLED_NETWORKS, NETWORKS
 
 # WAD base unit
 WAD = Web3.toWei(1, "ether")
@@ -83,21 +75,3 @@ def get_transaction_params(network: str, web3_client: Web3) -> TxParams:
         maxPriorityFeePerGas=max_priority_fee,
         maxFeePerGas=hex(min(max_fee_per_gas, max_fee_per_gas)),
     )
-
-
-def wait_for_transaction(network: str, web3_client: Web3, tx_hash: HexBytes) -> None:
-    """Waits for transaction to be confirmed."""
-    receipt = web3_client.eth.wait_for_transaction_receipt(
-        transaction_hash=tx_hash, timeout=TRANSACTION_TIMEOUT, poll_latency=5
-    )
-    confirmation_block: BlockNumber = receipt["blockNumber"] + CONFIRMATION_BLOCKS
-    current_block: BlockNumber = web3_client.eth.block_number
-    while confirmation_block > current_block:
-        logger.info(
-            f"[{network}] Waiting for {confirmation_block - current_block} confirmation blocks..."
-        )
-        time.sleep(15)
-
-        receipt = web3_client.eth.get_transaction_receipt(tx_hash)
-        confirmation_block = receipt["blockNumber"] + CONFIRMATION_BLOCKS
-        current_block = web3_client.eth.block_number

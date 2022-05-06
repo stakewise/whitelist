@@ -8,10 +8,12 @@ from web3 import Web3
 
 from app import config
 
-from .tasks import check_whitelist, update_whitelist
+from .db import setup_db
+from .tasks import check_whitelist, get_status, update_whitelist
 
 w3 = Web3()
 app = FastAPI()
+setup_db()
 
 
 class AddressRequest(BaseModel):
@@ -28,6 +30,7 @@ class AddressRequest(BaseModel):
             decode_hex(value)
         except (binascii.Error, TypeError):
             raise HTTPException(status_code=400, detail=invalid_address)
+        return value
 
 
 class AuthorizerDependency:
@@ -64,3 +67,9 @@ async def whitelist_delete(
 async def whitelist_get(address: str):
     AddressRequest.address_validation(address)
     return {"result": check_whitelist(address)}
+
+
+@app.get("/service/status", dependencies=[Depends(AuthorizerDependency())])
+async def status(address: str):
+    AddressRequest.address_validation(address)
+    return {"status": get_status(address)}
