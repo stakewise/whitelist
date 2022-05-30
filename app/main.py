@@ -40,8 +40,8 @@ class AuthorizerDependency:
         return api_key
 
 
-@app.get("/heathz")
-async def heathz():
+@app.get("/healthz")
+async def healthz():
     return {}
 
 
